@@ -9,7 +9,7 @@ class TagihanController extends Controller
 {
     public function home()
     {
-        $tagihans = Tagihan::all();
+        $tagihans = Tagihan::orderBy('id', 'DESC')->get();
         return view('payment', compact('tagihans'));
     }
     public function trx($id)
@@ -69,7 +69,6 @@ class TagihanController extends Controller
             $parameter['items'] = $tagihan->items;
             $parameter['msisdn'] = $tagihan->nomor;
             $parameter['failedUrl'] = route('error');
-
             $token = $this->send('https://payment.linkaja.id/linkaja-api/api/payment', $parameter);
             // dd($token);
             return view('blank', compact('token'));
@@ -188,6 +187,19 @@ class TagihanController extends Controller
         }
 
         dd($_GET);
+    }
+    public function delete()
+    {
+        $tagihan = Tagihan::where('trxId',$_GET['trxId'])->first();
+        if($tagihan){
+            $tagihan->delete();
+            return back()
+            ->with(['alert'=> "'title':'Berhasil Hapus','text':'Data Berhasil dihapus', 'icon':'success','buttons': false, 'timer': 1200"]);
+        }else{
+            return back()
+            ->with(['alert'=> "'title':'Gagal Menghapus','text':'Data gagal dihapus, periksa kembali data inputan', 'icon':'error'"])
+            ->withInput($request->all());
+        }
     }
 
 }

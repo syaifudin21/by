@@ -7,7 +7,7 @@
     <meta name="description" content="">
     <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
     <meta name="generator" content="Jekyll v3.8.5">
-    <title>Checkout example · Bootstrap</title>
+    <title>Checkout example</title>
 
     <link rel="canonical" href="https://getbootstrap.com/docs/4.3/examples/checkout/">
 
@@ -63,11 +63,11 @@
                 <a href="{{route('tagihan.lunasi').'?trxId='.$tagihan->trxId}}" class="btn btn-primary btn-sm">Lunasi</a>
                 @if ($tagihan->refNum != NULL)
                   <a href="{{route('tagihan.enabled').'?refNum='.$tagihan->refNum}}" class="btn btn-success btn-sm">Enabled</a>
-                  <a href="{{route('tagihan.disabled').'?refNum='.$tagihan->refNum}}" class="btn btn-danger btn-sm">Disabled</a>
-                
+                  {{-- <a href="{{route('tagihan.disabled').'?refNum='.$tagihan->refNum}}" class="btn btn-danger btn-sm">Disabled</a> --}}
                   <a href="{{route('tagihan.status').'?refNum='.$tagihan->refNum}}" class="btn btn-info btn-sm">Cek Status</a>
                   <a href="{{route('tagihan.reversal').'?refNum='.$tagihan->refNum}}" class="btn btn-warning btn-sm">Reversal</a>
                 @endif
+                <a href="{{route('tagihan.delete').'?trxId='.$tagihan->trxId}}" class="btn btn-danger btn-sm">Hapus Tagihan</a>
               </div>
             </small>
           </div>
@@ -126,6 +126,16 @@
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+@if(Session::has('alert'))
+<script src="{{asset('js/sweetalert.min.js')}}"></script>
+<script>
+    swal({
+      {!!Session::get('alert')!!}
+    });
+</script>
+@endif
+
 <script>
     (function () {
     'use strict'

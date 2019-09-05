@@ -14,7 +14,7 @@ class SoapController extends Controller
             'trace' => 1
         );
 
-        $this->instance = new SoapClient(NULL, $params);
+        // $this->instance = new SoapClient(NULL, $params);
     }
 
     public function directDebit()
@@ -78,6 +78,51 @@ class SoapController extends Controller
             </soapenv:Envelope>
             ';
 
+            // $client = new SoapClient(
+            //     null,
+            //     array(
+            //         'location' => 'https://10.54.19.242:30002/payment/services/SYNCAPIRequestMgrService',
+            //         'uri' => 'https://10.54.19.242:30002/payment/services/SYNCAPIRequestMgrService',
+            //         'trace' => 1,
+            //         'use' => SOAP_LITERAL,
+            //     )
+            // );
+            // $params = new \SoapVar("<Acquirer><Id>MyId</Id><UserId>MyUserId</UserId><Password>MyPassword</Password></Acquirer>", XSD_ANYXML);
+            // $result = $client->Echo($params);
+
         }
+    }
+
+    public function send($target, $parameter = NULL, $method = 'POST')
+    {
+        $content = array('http' =>
+                            array(
+                                'method'  => $method,
+                                'header'=> "Content-type: application/x-www-form-urlencoded\r\n",
+                                'content' => http_build_query($parameter)
+                            )
+                        );
+        $var = stream_context_create($content);
+        // dd($var);
+        $result = file_get_contents($target, false, $var);
+        return json_decode($result, TRUE);
+    }
+
+    public function enabled()
+    {
+        $parameter['PayerReferenceNumber'] = '123456789';
+        $parameter['AgreedTC'] = 1;
+        $parameter['PayeeAccountName'] = 'PayeeAccount';
+        $parameter['PayeeAccountName'] = 'PayeeAccount';
+        $parameter['FirstPaymentDate'] = '20171010';
+        $parameter['Frequency'] = '06';
+        $parameter['StartRangeOfDays'] = 1;
+        $parameter['EndRangeOfDays'] = 22;
+        $parameter['ExpiryDate'] = 20181010;
+
+        $mandat = $this->send('https://10.54.19.242:30002/payment/services/SYNCAPIRequestMgrService', $parameter);
+
+        dd($mandat);
+        # code...
     }
 }
