@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use SoapClient;
+use App\Http\Requests\Request;
 
 class SoapController extends Controller
 {
@@ -15,8 +15,60 @@ class SoapController extends Controller
             'trace' => 1
         );
 
-        $this->instance = new SoapClient(NULL, $params);
+        //$this->instance = new SoapClient(NULL, $params);
     }
+
+    public function sendXmlOverPost($url, $xml) {
+	$ch = curl_init();
+	curl_setopt($ch, CURLOPT_URL, $url);
+
+	// For xml, change the content-type.
+	curl_setopt ($ch, CURLOPT_HTTPHEADER, Array("Content-Type: text/xml"));
+
+	curl_setopt($ch, CURLOPT_POST, 1);
+	curl_setopt($ch, CURLOPT_POSTFIELDS, $xml);
+	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); // ask for results to be returned
+
+	// Send to remote and return data to caller.
+	$result = curl_exec($ch);
+	curl_close($ch);
+	return $result;
+    }
+
+    public function xmlsend($url, $xml){
+	$curl = curl_init();
+	    curl_setopt_array($curl, array(
+  	    CURLOPT_URL => $url,
+  	    CURLOPT_RETURNTRANSFER => true,
+  	    CURLOPT_ENCODING => "",
+  	    CURLOPT_MAXREDIRS => 10,
+  	    CURLOPT_TIMEOUT => 30,
+  	    CURLOPT_SSL_VERIFYHOST => 0,
+  	    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+	    CURLOPT_CUSTOMREQUEST => "POST",
+	    CURLOPT_SSL_VERIFYPEER=> false,
+  	    CURLOPT_POSTFIELDS => $xml,
+  	    CURLOPT_HTTPHEADER => array(
+    		"cache-control: no-cache",
+    		"content-type: text/xml",
+    		"postman-token: e992afcc-8510-6636-7a5d-b15a8427628e"
+  	    ),
+	));
+
+	$response = curl_exec($curl);
+	$err = curl_error($curl);
+
+	curl_close($curl);
+
+	if ($err) {
+		return "cURL Error #:" . $err;
+	} else {
+  		return $response;
+	}
+    }
+
 
     public function directDebit()
     {
@@ -100,7 +152,12 @@ class SoapController extends Controller
                             array(
                                 'method'  => $method,
                                 'header'=> "Content-type: application/x-www-form-urlencoded\r\n",
-                                'content' => http_build_query($parameter)
+                                'content' => http_build_query($parameter),
+ 				'ssl' => [
+        				"verify_peer"=>false,
+        				"verify_peer_name"=>false,
+    				]
+
                             )
                         );
         $var = stream_context_create($content);
@@ -111,8 +168,10 @@ class SoapController extends Controller
 
     public function enabled()
     {
-        $parameter['uri'] = 'https://10.54.19.242:30002/payment/services/SYNCAPIRequestMgrService';
-        $parameter['location'] = 'https://10.54.19.242:30002/payment/services/SYNCAPIRequestMgrService';
+	$target = 'https://10.54.19.242:30002/payment/services/SYNCAPIRequestMgrService';
+
+        $parameter['uri'] = $target;
+        $parameter['location'] = $target;
         $param['PayerReferenceNumber'] = '123456789';
         $param['AgreedTC'] = 1;
         $param['PayeeAccountName'] = 'PayeeAccount';
@@ -177,12 +236,12 @@ class SoapController extends Controller
         
         ';
 
-        // $mandat = $this->send('vihttps://10.54.19.242:30002/payment/services/SYNCAPIRequestMgrSerce', $parameter);
-        // $mandat =  new SoapClient($wdsl, $parameter);
+	$result = $this->xmlsend($target, $wdsl);
 
-        // dd($mandat);
-        $wsdl = file_get_contents('https://10.54.19.242:30002/payment/services/SYNCAPIRequestMgrSerce');
-        dd($wsdl);
-        # code...
+
+	dd($result);
+
+	
+
     }
 }
