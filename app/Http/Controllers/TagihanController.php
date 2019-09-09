@@ -38,6 +38,7 @@ class TagihanController extends Controller
     }
     public function send($target, $parameter = NULL, $method = 'POST')
     {
+        // dd($parameter);
         $content = array('http' =>
                             array(
                                 'method'  => $method,
@@ -48,6 +49,7 @@ class TagihanController extends Controller
         $var = stream_context_create($content);
         // dd($var);
         $result = file_get_contents($target, false, $var);
+        // dd($result);
         return json_decode($result, TRUE);
     }
     public function lunasi()
@@ -71,7 +73,8 @@ class TagihanController extends Controller
             $parameter['failedUrl'] = route('error');
             $token = $this->send('https://payment.linkaja.id/linkaja-api/api/payment', $parameter);
             // dd($token);
-            return view('blank', compact('token'));
+            $url = url('https://payment.linkaja.id/checkout/payment?Message='.$token['pgpToken']);
+            return view('blank', compact('url'));
         }
     }
     public function enabledMandat()
@@ -127,29 +130,40 @@ class TagihanController extends Controller
 
     public function enabled()
     {
-        if(!isset($_GET['refNum'])){
+        // dd($_GET);
+        if(!isset($_GET['trxId'])){
             return back()
             ->with(['alert'=> "'title':'Gagal Menyimpan','text':'No Transaksi tidak ada, periksa kembali data inputan', 'icon':'error'"]);
         }else{
-            $refNum = $_GET['refNum'];
-            $tagihan = Tagihan::where('refNum',$refNum)->first();
+            $trxId = $_GET['trxId'];
+            $tagihan = Tagihan::where('trxId',$trxId)->first();
             // dd($tagihan);
             $parameter['terminalId'] = env('LA_TERMINAL_ID');
             $parameter['userKey'] = env('LA_USER_KEY');
             $parameter['password'] = env('LA_PASSWORD');
-            $parameter['signKey'] = env('LA_SIGNKEY');
-            $parameter['payerRefnum'] = $tagihan->refNum;
+            $parameter['signature'] = env('LA_SIGNKEY');
+            $parameter['payerRefnum'] =  env('LA_PAYER_REFNUM');
             $parameter['Msisdn'] = $tagihan->nomor;
-            
-            $parameter['refNum'] = $refNum;
-            $parameter['trxId'] = $tagihan->trxId;
-            $parameter['successUrl'] = route('success');
+
+            // $parameter['refNum'] = $refNum;
+            $parameter['trxId'] = $tagihan->trxId.rand(1212,1212121);
+            $parameter['successUrl'] = route('success.dd');
             $parameter['failedUrl'] = route('error');
             $parameter['default_language'] = 0;
             $parameter['default_template'] = 0;
-            $status = $this->send('https://payment.linkaja.id/linkaja-api/api/direct-debit/enable', $parameter);
-            dd($status);
+            // dd($parameter);
+
+            $token = $this->send('https://payment.linkaja.id/linkaja-api/api/direct-debit/enable', $parameter);
+            // dd($token);
+            
+            $url = url('https://payment.linkaja.id/direct-debit/enable?Message='.$token['pgpToken']);
+// dd($url);
+            return view('blank', compact('url'));
         }
+    }
+    public function curlenabled()
+    {
+        
     }
     public function disabled()
     {
@@ -169,7 +183,7 @@ class TagihanController extends Controller
             
             $parameter['refNum'] = $tagihan->refNum;
             $parameter['trxId'] = $tagihan->trxId;
-            $parameter['successUrl'] = route('success');
+            $parameter['successUrl'] = route('success.dd');
             $parameter['failedUrl'] = route('error');
 
             $status = $this->send('https://payment.linkaja.id/linkaja-api/api/direct-debit/cancel', $parameter);
@@ -186,6 +200,10 @@ class TagihanController extends Controller
             $tagihan->save();
         }
 
+        dd($_GET);
+    }
+    public function successdd()
+    {
         dd($_GET);
     }
     public function delete()

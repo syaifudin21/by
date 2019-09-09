@@ -8,7 +8,7 @@
 </head>
 <body>
 
-        <form id="myForm" action="{{url('https://payment.linkaja.id/checkout/payment?Message='.$token['pgpToken'])}}" method="post">
+        <form id="myForm" action="{{$url}}" method="post">
                 <?php
                     // foreach ($_POST as $a => $b) {
                     //     echo '<input type="hidden" name="'.htmlentities($a).'" value="'.htmlentities($b).'">';
